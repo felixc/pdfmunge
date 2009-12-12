@@ -129,6 +129,11 @@ def handle_options(argv):
      'infile': 'infile', 'outfile': 'outfile'}
   True
 
+  >>> handle_options(["-o", "2,3,4,5", "infile", "outfile"])
+  Traceback (most recent call last):
+    ...
+  GetoptError: Boundaries for even pages required if odd page boundaries given.
+
   >>> handle_options(["infile"])
   Traceback (most recent call last):
     ...
@@ -159,6 +164,10 @@ def handle_options(argv):
     options["infile"], options["outfile"] = args[0], args[1]
   except IndexError:
     raise getopt.GetoptError("Missing input or output filename.")
+
+  if "oddbounds" in options and "bounds" not in options:
+    raise getopt.GetoptError("Boundaries for even pages required if odd "
+                             "page boundaries given.")
 
   return options
 
