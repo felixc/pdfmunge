@@ -1,31 +1,43 @@
 #!/usr/bin/python
 
 """
-
-
-
+pdfslice - Process PDFs to make them more legible on eBook readers.
 
 Copyright (c) 2009 Felix Crux (www.felixcrux.com)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+Available under the MIT License (included at end of file).
 
 """
+
+usage_string = """
+Usage: pdfslice [options]... input_file output_file
+Options:
+  -r  --rotate     Slice pages in half and rotate each half 90 degrees
+                   counter-clockwise, creating a pseudo-landscape mode on
+                   devices that don't do this automatically. Be warned that
+                   this will double the size of your output file.
+  -b  --bounds     Boundaries of visible area on each PDF page. Useful for
+                   cropping off large margins. If this is given, cropping is
+                   done automatically; otherwise it is not done. Boundaries
+                   should be given as four comma-separated numbers, all
+                   enclosed in quotation marks, like so: "10,20,100,120". Any
+                   whitespace inside the quotation marks is ignored.
+  -o  --oddbounds  For PDFs that have different margins on even and odd pages,
+                   use these boundary values for odd numbered pages, with
+                   --bounds applying to even numbered ones. If this is given,
+                   --bounds is required.
+  -e  --exclude    Numbers or ranges of pages to not include in the output PDF.
+                   These should be given as a series of numbers or ranges
+                   surrounded by quotation marks, and separated by commas. Any
+                   whitespace is ignored. Ranges are given as two numbers
+                   separated by a hyphen/minus sign (-), where the first number
+                   must be smaller than the second. Example: "1,2,4-8,40".
+                   This option takes precedence over --intact.
+  -i  --intact     Leave these pages completely unchanged, ignoring
+                   cropping, rotating, or anything else. Requires a set of
+                   numbers or ranges like --exclude. Excluded pages are
+                   ignored even if listed here.
+"""
+
 
 import getopt
 import pyPdf
@@ -38,7 +50,7 @@ def main(argv):
     options = handle_options(argv)
   except getopt.GetoptError as err:
     print(str(err))
-    usage()
+    print(usage_string)
     return 2
 
   try:
@@ -59,6 +71,8 @@ def main(argv):
 
   for pagenum in range(0, input.getNumPages()):
     if pagenum not in options["exclude"]:
+
+      # THIS IS GARBAGE FROM PROTOTYPING.
       page = input.getPage(pagenum)
       page2 = input2.getPage(pagenum)
       pagetop, pagebot = (page, page2)
@@ -75,6 +89,7 @@ def main(argv):
 
       output.addPage(pagetop)
       output.addPage(pagebot)
+      # END OF GARBAGE
 
 
   output.write(output_stream)
@@ -199,11 +214,6 @@ def parse_range(range_string):
   return expanded_list
 
 
-def usage():
-  """ Print usage information for the script. """
-  print("Usage: pdfslice [option]... input_file output_file")
-
-
 if __name__ == "__main__":
   args = sys.argv[1:]
   if len(args) > 0 and args[0] == "--test":
@@ -211,3 +221,27 @@ if __name__ == "__main__":
     doctest.testmod()
   else:
     exit(main(args))
+
+
+"""
+Copyright (c) 2009 Felix Crux (www.felixcrux.com)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+"""
