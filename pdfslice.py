@@ -53,6 +53,7 @@ def main(argv):
     print(usage_string)
     return 2
 
+  # Get our inputs and outputs sorted out and opened.
   try:
     input_stream = file(options["infile"], "rb")
     input = pyPdf.PdfFileReader(input_stream)
@@ -69,29 +70,30 @@ def main(argv):
     print("Unable to create output file: %s" % str(err))
     return 1
 
+  # The meat of the program: go over every page performing the user's bidding.
+  # Rotation is currently unimplemented, due to this already being a hideous
+  # mess of nested blocks that needs to be refactored before anything else
+  # happens.
   for pagenum in range(0, input.getNumPages()):
     if pagenum not in options["exclude"]:
-
-      # THIS IS GARBAGE FROM PROTOTYPING.
       page = input.getPage(pagenum)
-      page2 = input2.getPage(pagenum)
-      pagetop, pagebot = (page, page2)
+      if pagenum not in options["intact"]:
 
-      if (pagenum % 2 == 0):
-        pagetop.mediaBox = pyPdf.generic.RectangleObject(even_topbounds)
-        pagebot.mediaBox = pyPdf.generic.RectangleObject(even_botbounds)
-      else:
-        pagetop.mediaBox = pyPdf.generic.RectangleObject(odd_topbounds)
-        pagebot.mediaBox = pyPdf.generic.RectangleObject(odd_botbounds)
+        # Crop the page boundaries as needed.
+        if "bounds" in options:
+          if "oddbounds" in options:
+            if pagenum % 2 == 0:
+              page.mediaBox = \
+                pyPdf.generic.RectangleObject(options["bounds"])
+            else:
+              page.mediaBox = \
+                pyPdf.generic.RectangleObject(options["oddbounds"])
+          else:
+            page.mediaBox = pyPdf.generic.RectangleObject(options["bounds"])
 
-      pagetop.rotateCounterClockwise(90)
-      pagebot.rotateCounterClockwise(90)
+      output.addPage(page)
 
-      output.addPage(pagetop)
-      output.addPage(pagebot)
-      # END OF GARBAGE
-
-
+  # All right, we're done. Write the output, close up, go home.
   output.write(output_stream)
 
   input_stream.close()
