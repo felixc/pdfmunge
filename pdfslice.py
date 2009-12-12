@@ -82,12 +82,8 @@ def main(argv):
         # Crop the page boundaries as needed.
         if "bounds" in options:
           if "oddbounds" in options:
-            if pagenum % 2 == 0:
-              page.mediaBox = \
-                pyPdf.generic.RectangleObject(options["bounds"])
-            else:
-              page.mediaBox = \
-                pyPdf.generic.RectangleObject(options["oddbounds"])
+            page.mediaBox = pyPdf.generic.RectangleObject(
+              options["bounds"] if (pagenum % 2) else options["oddbounds"])
           else:
             page.mediaBox = pyPdf.generic.RectangleObject(options["bounds"])
 
