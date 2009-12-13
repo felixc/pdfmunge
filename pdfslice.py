@@ -282,7 +282,7 @@ def parse_range(range_string):
     if cur_range.find("-") > -1:
       start, end = cur_range.split("-")
       start, end = int(start) - 1, int(end)
-      expanded_list.extend(range(start, end))
+      expanded_list.extend(list(range(start, end)))
     else:
       expanded_list.append(int(cur_range) - 1)
   return expanded_list
