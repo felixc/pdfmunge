@@ -45,7 +45,7 @@ import sys
 
 
 def main(argv):
-  """ """
+  """  Process PDFs to make them more legible on eBook readers. """
   try:
     options = handle_options(argv)
   except getopt.GetoptError as err:
@@ -71,23 +71,28 @@ def main(argv):
     return 1
 
   # The meat of the program: go over every page performing the user's bidding.
-  # Rotation is currently unimplemented, due to this already being a hideous
-  # mess of nested blocks that needs to be refactored before anything else
-  # happens.
+  # This mess really, really, needs to be refactored.
   for pagenum in range(0, input.getNumPages()):
     if pagenum not in options["exclude"]:
       page = input.getPage(pagenum)
       if pagenum not in options["intact"]:
-
-        # Crop the page boundaries as needed.
-        if "bounds" in options:
-          if "oddbounds" in options:
+        if options["rotate"] is True:
+          page2 = input2.getPage(pagenum)
+          page.mediaBox = pyPdf.generic.RectangleObject(
+            calculate_bounds(pagenum, options, True))
+          page2.mediaBox = pyPdf.generic.RectangleObject(
+            calculate_bounds(pagenum, options, False))
+          page.rotateCounterClockwise(90)
+          page2.rotateCounterClockwise(90)
+          output.addPage(page)
+          output.addPage(page2)
+        else:
+          if "bounds" in options:
             page.mediaBox = pyPdf.generic.RectangleObject(
-              options["bounds"] if (pagenum % 2) else options["oddbounds"])
-          else:
-            page.mediaBox = pyPdf.generic.RectangleObject(options["bounds"])
-
-      output.addPage(page)
+              calculate_bounds(pagenum, options))
+          output.addPage(page)
+      else:
+        output.addPage(page)
 
   # All right, we're done. Write the output, close up, go home.
   output.write(output_stream)
@@ -96,6 +101,58 @@ def main(argv):
   output_stream.close()
 
   return 0
+
+
+def calculate_bounds(pagenum, options, top=False):
+  """ Determine the appropriate page boundaries based on page
+  odd/evenness and rotation.
+
+  Note that the function expects to receive page numbers 0-indexed, but treats
+  them as 1-indexed in order to satisfy user expectations. This means that page
+  4 will be treated as odd, and 5 as even, because they are really pages 5 and
+  6 to the user. Page 1 (i.e. value 0) is odd.
+
+  Examples:
+  >>> calculate_bounds(1, {'rotate': False, 'bounds': [4,4,10,10]})
+  [4, 4, 10, 10]
+  >>> calculate_bounds(1, {'rotate': False, 'bounds': [4,4,10,10], \
+                           'oddbounds': [2,2,8,8]})
+  [4, 4, 10, 10]
+  >>> calculate_bounds(2, {'rotate': False, 'bounds': [4,4,10,10], \
+                           'oddbounds': [2,2,8,8]})
+  [2, 2, 8, 8]
+  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10]}, True)
+  [4, 7, 10, 10]
+  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10]})
+  [4, 4, 10, 7]
+  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10], \
+                           'oddbounds': [2,2,8,8]}, True)
+  [4, 7, 10, 10]
+  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10], \
+                           'oddbounds': [2,2,8,8]})
+  [4, 4, 10, 7]
+  >>> calculate_bounds(2, {'rotate': True, 'bounds': [4,4,10,10], \
+                           'oddbounds': [2,2,8,8]}, True)
+  [2, 5, 8, 8]
+  >>> calculate_bounds(2, {'rotate': True, 'bounds': [4,4,10,10], \
+                           'oddbounds': [2,2,8,8]})
+  [2, 2, 8, 5]
+
+  """
+  if options["rotate"] == True:
+    if "oddbounds" in options and (pagenum % 2 == 0):
+      bounds = options["oddbounds"][:]
+    else:
+      bounds = options["bounds"][:]
+    if top:
+      bounds[1] = (bounds[3] - bounds[1]) / 2 + bounds[1]
+    else:
+      bounds[3] = (bounds[3] - bounds[1]) / 2 + bounds[1]
+    return bounds
+  elif "oddbounds" in options and (pagenum % 2 == 0):
+    return options["oddbounds"]
+  else:
+    return options["bounds"]
 
 
 def handle_options(argv):
@@ -230,7 +287,7 @@ if __name__ == "__main__":
     exit(main(args))
 
 
-"""
+license = """
 Copyright (c) 2009 Felix Crux (www.felixcrux.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
