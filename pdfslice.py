@@ -15,6 +15,9 @@ Options:
                    counter-clockwise, creating a pseudo-landscape mode on
                    devices that don't do this automatically. Be warned that
                    this will double the size of your output file.
+  -m  --margin     If using rotation/slicing, have each page overlap with the
+                   previous one by this amount (helps with lines getting cut
+                   off in the middle).
   -b  --bounds     Boundaries of visible area on each PDF page. Useful for
                    cropping off large margins. If this is given, cropping is
                    done automatically; otherwise it is not done. Boundaries
@@ -121,21 +124,26 @@ def calculate_bounds(pagenum, options, top=False):
   >>> calculate_bounds(2, {'rotate': False, 'bounds': [4,4,10,10], \
                            'oddbounds': [2,2,8,8]})
   [2, 2, 8, 8]
-  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10]}, True)
+  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10], \
+                           'margin': 0}, True)
   [4, 7, 10, 10]
-  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10]})
+  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10], \
+                           'margin': 2}, True)
+  [4, 5, 10, 10]
+  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10], \
+                           'margin': 0})
   [4, 4, 10, 7]
   >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10], \
-                           'oddbounds': [2,2,8,8]}, True)
+                           'oddbounds': [2,2,8,8], 'margin': 0}, True)
   [4, 7, 10, 10]
   >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10], \
-                           'oddbounds': [2,2,8,8]})
+                           'oddbounds': [2,2,8,8], 'margin': 0})
   [4, 4, 10, 7]
   >>> calculate_bounds(2, {'rotate': True, 'bounds': [4,4,10,10], \
-                           'oddbounds': [2,2,8,8]}, True)
+                           'oddbounds': [2,2,8,8], 'margin': 0}, True)
   [2, 5, 8, 8]
   >>> calculate_bounds(2, {'rotate': True, 'bounds': [4,4,10,10], \
-                           'oddbounds': [2,2,8,8]})
+                           'oddbounds': [2,2,8,8], 'margin': 0})
   [2, 2, 8, 5]
 
   """
@@ -145,9 +153,9 @@ def calculate_bounds(pagenum, options, top=False):
     else:
       bounds = options["bounds"][:]
     if top:
-      bounds[1] = (bounds[3] - bounds[1]) / 2 + bounds[1]
+      bounds[1] = (bounds[3] - bounds[1]) / 2 + bounds[1] - options["margin"]
     else:
-      bounds[3] = (bounds[3] - bounds[1]) / 2 + bounds[1]
+      bounds[3] = (bounds[3] - bounds[1]) / 2 + bounds[1] + options["margin"]
     return bounds
   elif "oddbounds" in options and (pagenum % 2 == 0):
     return options["oddbounds"]
@@ -163,25 +171,25 @@ def handle_options(argv):
 
   Examples:
   >>> handle_options(["infile", "outfile"]) == \
-    {'rotate': False, 'exclude': [], 'intact': [], \
+    {'rotate': False, 'exclude': [], 'intact': [], 'margin': 0,\
      'infile': 'infile', 'outfile':'outfile'}
   True
 
   >>> handle_options(["-r", "-b", "4,5,6,7", "-o", "2,3,4,5", \
                       "-e", "1,2,5-7,100-102", "-i", "1,15-16", \
-                      "infile","outfile"]) == \
+                      "-m", "3", "infile","outfile"]) == \
     {'rotate': True, 'bounds': [4,5,6,7], 'oddbounds': [2,3,4,5], \
      'exclude': [0,1,4,5,6,99,100,101], 'intact': [0,14,15], \
-     'infile': 'infile', 'outfile': 'outfile'}
+     'margin': 3, 'infile': 'infile', 'outfile': 'outfile'}
   True
 
   >>> handle_options(["--rotate", \
                       "--bounds", "4,5,6,7", "--oddbounds", "2,3,4,5", \
                       "--exclude", "1,2,5-7,100-102", "--intact", "1,15-16", \
-                      "infile", "outfile"]) == \
+                      "--margin", 3, "infile", "outfile"]) == \
     {'rotate': True, 'bounds': [4,5,6,7], 'oddbounds': [2,3,4,5], \
      'exclude': [0,1,4,5,6,99,100,101], 'intact': [0,14,15], \
-     'infile': 'infile', 'outfile': 'outfile'}
+     'margin': 3, 'infile': 'infile', 'outfile': 'outfile'}
   True
 
   >>> handle_options(["-o", "2,3,4,5", "infile", "outfile"])
@@ -195,12 +203,12 @@ def handle_options(argv):
   GetoptError: Missing input or output filename.
 
   """
-  options = {"rotate": False, "exclude": [], "intact": []}
+  options = {"rotate": False, "exclude": [], "intact": [], "margin": 0}
 
   opts, args = getopt.getopt(argv,
-                             "rb:o:e:i:",
+                             "rb:o:e:i:m:",
                              ["rotate", "bounds=", "oddbounds=",
-                              "exclude=", "intact="])
+                              "exclude=", "intact=", "margin="])
   for opt, arg in opts:
     if opt in ("-r", "--rotate"):
       options["rotate"] = True
@@ -212,6 +220,8 @@ def handle_options(argv):
       options["exclude"] = parse_range(arg)
     elif opt in ("-i", "--intact"):
       options["intact"] = parse_range(arg)
+    elif opt in ("-m", "--margin"):
+      options["margin"] = int(arg)
     else:
       assert False, "Unhandled Option"
 
