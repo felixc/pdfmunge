@@ -88,8 +88,8 @@ In particular, open issues are:
 There is no separate test suite, but I have tried to be fairly comprehensive
 with doctests. Tests can be run with "./pdfslice.py --test", or with "python -m
 doctest [-v] pdfslice.py", where the -v optionally enables verbose mode. Fully
-automated test coverage is about 57%, due to the entire main() being excluded,
-but some manual testing with actual PDFs brings coverage up to about 88%.
+automated test coverage is about 46%, due to the entire main() being excluded,
+but some manual testing with actual PDFs brings coverage up to about 89%.
 
 
 License:
