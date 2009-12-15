@@ -106,11 +106,12 @@ def crop(page, page_num, options):
   """ Apply user-specified bounds to the page. """
   # Note that (page_num % 2 == 0) is the correct test for odd numbered pages,
   # since we are using 0-indexed ones, where the user expects 1-indexed.
-  if "oddbounds" in options and (page_num % 2 == 0):
-    bounds = options["oddbounds"]
-  else:
-    bounds = options["bounds"]
-  page.mediaBox = pyPdf.generic.RectangleObject(bounds)
+  if page is not None:
+    if "oddbounds" in options and (page_num % 2 == 0):
+      bounds = options["oddbounds"]
+    else:
+      bounds = options["bounds"]
+    page.mediaBox = pyPdf.generic.RectangleObject(bounds)
 
 
 def rotate(page, page2, options):
