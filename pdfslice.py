@@ -85,7 +85,7 @@ def main(argv):
         crop(page2, page_num, options)
 
       if options["rotate"]:
-        rotate(page, page2, options["margin"])
+        rotate(page, page2, options)
 
       output.addPage(page)
       if page2 is not None:
@@ -113,12 +113,12 @@ def crop(page, page_num, options):
   page.mediaBox = pyPdf.generic.RectangleObject(bounds)
 
 
-def rotate(page, page2, margin):
+def rotate(page, page2, options):
   """ Perform slicing and rotation on pages. """
   bounds = list(page.mediaBox.lowerLeft) + list(page.mediaBox.upperRight)
   bounds2 = list(page2.mediaBox.lowerLeft) + list(page2.mediaBox.upperRight)
-  bounds[1] = (bounds[3] - bounds[1]) / 2 + bounds[1] - margin
-  bounds2[3] = (bounds2[3] - bounds2[1]) / 2 + bounds2[1] + margin
+  bounds[1] = (bounds[3] - bounds[1]) / 2 + bounds[1] - options["margin"]
+  bounds2[3] = (bounds2[3] - bounds2[1]) / 2 + bounds2[1] + options["margin"]
 
   page.mediaBox = pyPdf.generic.RectangleObject(bounds)
   page2.mediaBox = pyPdf.generic.RectangleObject(bounds2)
