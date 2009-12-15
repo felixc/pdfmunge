@@ -74,28 +74,24 @@ def main(argv):
     return 1
 
   # The meat of the program: go over every page performing the user's bidding.
-  # This mess really, really, needs to be refactored.
-  for pagenum in range(0, input.getNumPages()):
-    if pagenum not in options["exclude"]:
-      page = input.getPage(pagenum)
-      if pagenum not in options["intact"]:
-        if options["rotate"] is True:
-          page2 = input2.getPage(pagenum)
-          page.mediaBox = pyPdf.generic.RectangleObject(
-            calculate_bounds(pagenum, options, True))
-          page2.mediaBox = pyPdf.generic.RectangleObject(
-            calculate_bounds(pagenum, options, False))
-          page.rotateCounterClockwise(90)
-          page2.rotateCounterClockwise(90)
-          output.addPage(page)
-          output.addPage(page2)
-        else:
-          if "bounds" in options:
-            page.mediaBox = pyPdf.generic.RectangleObject(
-              calculate_bounds(pagenum, options))
-          output.addPage(page)
-      else:
-        output.addPage(page)
+  page_nums = range(0, input.getNumPages())
+  page_nums = [x for x in page_nums if x not in options["exclude"]]
+  for page_num in page_nums:
+    page = input.getPage(page_num)
+    page2 = None if not options["rotate"] else input2.getPage(page_num)
+    if page_num not in options["intact"]:
+      if "bounds" in options:
+        crop(page, page_num, options);
+        crop(page2, page_num, options)
+
+      if options["rotate"]:
+        rotate(page, page2, options["margin"])
+
+      output.addPage(page)
+      if page2 is not None:
+        output.addPage(page2)
+    else:
+      output.addPage(page)
 
   # All right, we're done. Write the output, close up, go home.
   output.write(output_stream)
@@ -106,61 +102,29 @@ def main(argv):
   return 0
 
 
-def calculate_bounds(pagenum, options, top=False):
-  """ Determine the appropriate page boundaries based on page
-  odd/evenness and rotation.
-
-  Note that the function expects to receive page numbers 0-indexed, but treats
-  them as 1-indexed in order to satisfy user expectations. This means that page
-  4 will be treated as odd, and 5 as even, because they are really pages 5 and
-  6 to the user. Page 1 (i.e. value 0) is odd.
-
-  Examples:
-  >>> calculate_bounds(1, {'rotate': False, 'bounds': [4,4,10,10]})
-  [4, 4, 10, 10]
-  >>> calculate_bounds(1, {'rotate': False, 'bounds': [4,4,10,10], \
-                           'oddbounds': [2,2,8,8]})
-  [4, 4, 10, 10]
-  >>> calculate_bounds(2, {'rotate': False, 'bounds': [4,4,10,10], \
-                           'oddbounds': [2,2,8,8]})
-  [2, 2, 8, 8]
-  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10], \
-                           'margin': 0}, True)
-  [4, 7, 10, 10]
-  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10], \
-                           'margin': 2}, True)
-  [4, 5, 10, 10]
-  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10], \
-                           'margin': 0})
-  [4, 4, 10, 7]
-  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10], \
-                           'oddbounds': [2,2,8,8], 'margin': 0}, True)
-  [4, 7, 10, 10]
-  >>> calculate_bounds(1, {'rotate': True, 'bounds': [4,4,10,10], \
-                           'oddbounds': [2,2,8,8], 'margin': 0})
-  [4, 4, 10, 7]
-  >>> calculate_bounds(2, {'rotate': True, 'bounds': [4,4,10,10], \
-                           'oddbounds': [2,2,8,8], 'margin': 0}, True)
-  [2, 5, 8, 8]
-  >>> calculate_bounds(2, {'rotate': True, 'bounds': [4,4,10,10], \
-                           'oddbounds': [2,2,8,8], 'margin': 0})
-  [2, 2, 8, 5]
-
-  """
-  if options["rotate"] == True:
-    if "oddbounds" in options and (pagenum % 2 == 0):
-      bounds = options["oddbounds"][:]
-    else:
-      bounds = options["bounds"][:]
-    if top:
-      bounds[1] = (bounds[3] - bounds[1]) / 2 + bounds[1] - options["margin"]
-    else:
-      bounds[3] = (bounds[3] - bounds[1]) / 2 + bounds[1] + options["margin"]
-    return bounds
-  elif "oddbounds" in options and (pagenum % 2 == 0):
-    return options["oddbounds"]
+def crop(page, page_num, options):
+  """ Apply user-specified bounds to the page. """
+  # Note that (page_num % 2 == 0) is the correct test for odd numbered pages,
+  # since we are using 0-indexed ones, where the user expects 1-indexed.
+  if "oddbounds" in options and (page_num % 2 == 0):
+    bounds = options["oddbounds"]
   else:
-    return options["bounds"]
+    bounds = options["bounds"]
+  page.mediaBox = pyPdf.generic.RectangleObject(bounds)
+
+
+def rotate(page, page2, margin):
+  """ Perform slicing and rotation on pages. """
+  bounds = list(page.mediaBox.lowerLeft) + list(page.mediaBox.upperRight)
+  bounds2 = list(page2.mediaBox.lowerLeft) + list(page2.mediaBox.upperRight)
+  bounds[1] = (bounds[3] - bounds[1]) / 2 + bounds[1] - margin
+  bounds2[3] = (bounds2[3] - bounds2[1]) / 2 + bounds2[1] + margin
+
+  page.mediaBox = pyPdf.generic.RectangleObject(bounds)
+  page2.mediaBox = pyPdf.generic.RectangleObject(bounds2)
+
+  page.rotateCounterClockwise(90)
+  page2.rotateCounterClockwise(90)
 
 
 def handle_options(argv):
