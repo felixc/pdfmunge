@@ -1,5 +1,5 @@
-pdfslice - Process PDFs to make them more legible on eBook readers.
-Copyright (c) 2009 Felix Crux (www.felixcrux.com)
+pdfmunge - Process PDFs to make them more legible on eBook readers.
+Copyright (c) 2009, 2010 Felix Crux (www.felixcrux.com)
 
 Summary:
 
@@ -11,7 +11,7 @@ counter-clockwise. It can also remove individual pages from the file.
 
 
 Usage:
-pdfslice [options]... input_file output_file
+pdfmunge [options]... input_file output_file
 
   -r  --rotate     Slice pages in half and rotate each half 90 degrees
                    counter-clockwise, creating a pseudo-landscape mode on
@@ -53,7 +53,7 @@ Examples:
 For a simple example, we can use the PDF version of John Hughes' paper "Why
 Functional Programming Matters", which is available from his website. We want
 to strip away the large margins, and exclude the last page of references:
-  ./pdfslice.py --exclude "23" --bounds "125,110,485,670" WhyFP.pdf Test.pdf
+  ./pdfmunge.py --exclude "23" --bounds "125,110,485,670" WhyFP.pdf Test.pdf
 
 For a complicated example that really shows off all the features, let's look at
 the (free) PDF edition of Mark Dominus' "Higher Order Perl"; which is available
@@ -65,7 +65,7 @@ you should buy the paper copy!). To make it more readable, we'll slice each
 page in half and rotate them, creating an imiation of landscape mode on the
 eBook reader. We'll also want to refrain from processing page 5, which is the
 title page:
-  ./pdfslice.py --intact "5" --exclude "1-4,6-8,582-592" \
+  ./pdfmunge.py --intact "5" --exclude "1-4,6-8,582-592" \
     --bounds "215,240,557,778" --oddbounds "153,240,495,778" \
     --rotate --margin 3 HoP.pdf Test.pdf
 
@@ -86,8 +86,8 @@ In particular, open issues are:
    rather narrow.
 
 There is no separate test suite, but I have tried to be fairly comprehensive
-with doctests. Tests can be run with "./pdfslice.py --test", or with "python -m
-doctest [-v] pdfslice.py", where the -v optionally enables verbose mode. Fully
+with doctests. Tests can be run with "./pdfmunge.py --test", or with "python -m
+doctest [-v] pdfmunge.py", where the -v optionally enables verbose mode. Fully
 automated test coverage is about 46%, due to the entire main() being excluded,
 but some manual testing with actual PDFs brings coverage up to about 89%.
 

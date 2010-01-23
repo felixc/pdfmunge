@@ -1,15 +1,15 @@
 #!/usr/bin/python
 
 """
-pdfslice - Process PDFs to make them more legible on eBook readers.
+pdfmunge - Process PDFs to make them more legible on eBook readers.
 
-Copyright (c) 2009 Felix Crux (www.felixcrux.com)
+Copyright (c) 2009, 2010 Felix Crux (www.felixcrux.com)
 Available under the MIT License (see Readme).
 
 """
 
 usage_string = """
-Usage: pdfslice [options]... input_file output_file
+Usage: pdfmunge [options]... input_file output_file
 Options:
   -r  --rotate     Slice pages in half and rotate each half 90 degrees
                    counter-clockwise, creating a pseudo-landscape mode on
