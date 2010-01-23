@@ -134,39 +134,6 @@ def handle_options(argv):
   All options are optional (as the name tends to suggest), but two
   arguments are required: an input filename and an output filename.
 
-  Examples:
-  >>> handle_options(["infile", "outfile"]) == \
-    {'rotate': False, 'exclude': [], 'intact': [], 'margin': 0,\
-     'infile': 'infile', 'outfile':'outfile'}
-  True
-
-  >>> handle_options(["-r", "-b", "4,5,6,7", "-o", "2,3,4,5", \
-                      "-e", "1,2,5-7,100-102", "-i", "1,15-16", \
-                      "-m", "3", "infile","outfile"]) == \
-    {'rotate': True, 'bounds': [4,5,6,7], 'oddbounds': [2,3,4,5], \
-     'exclude': [0,1,4,5,6,99,100,101], 'intact': [0,14,15], \
-     'margin': 3, 'infile': 'infile', 'outfile': 'outfile'}
-  True
-
-  >>> handle_options(["--rotate", \
-                      "--bounds", "4,5,6,7", "--oddbounds", "2,3,4,5", \
-                      "--exclude", "1,2,5-7,100-102", "--intact", "1,15-16", \
-                      "--margin", 3, "infile", "outfile"]) == \
-    {'rotate': True, 'bounds': [4,5,6,7], 'oddbounds': [2,3,4,5], \
-     'exclude': [0,1,4,5,6,99,100,101], 'intact': [0,14,15], \
-     'margin': 3, 'infile': 'infile', 'outfile': 'outfile'}
-  True
-
-  >>> handle_options(["-o", "2,3,4,5", "infile", "outfile"])
-  Traceback (most recent call last):
-    ...
-  GetoptError: Boundaries for even pages required if odd page boundaries given.
-
-  >>> handle_options(["infile"])
-  Traceback (most recent call last):
-    ...
-  GetoptError: Missing input or output filename.
-
   """
   options = {"rotate": False, "exclude": [], "intact": [], "margin": 0}
 
@@ -208,12 +175,6 @@ def parse_bounds(bounds_string):
 
   Input values should be separated by commas, with whitespace being ignored.
 
-  Examples:
-  >>> parse_bounds("2,3,4,5")
-  [2, 3, 4, 5]
-  >>> parse_bounds("2,  3  , 4 , 5")
-  [2, 3, 4, 5]
-
   """
   return [int(val) for val in bounds_string.split(",")]
 
@@ -230,16 +191,6 @@ def parse_range(range_string):
   pyPdf indexes from 0, the *inputs* are 1-indexed, but the *outputs* are
   0-indexed.
 
-  Examples:
-  >>> parse_range("1")
-  [0]
-  >>> parse_range("1,2,3")
-  [0, 1, 2]
-  >>> parse_range("1-3")
-  [0, 1, 2]
-  >>> parse_range("1, 4-6, 14, 15, 30-31")
-  [0, 3, 4, 5, 13, 14, 29, 30]
-
   """
   expanded_list = []
   ranges = range_string.split(",")
@@ -254,9 +205,4 @@ def parse_range(range_string):
 
 
 if __name__ == "__main__":
-  args = sys.argv[1:]
-  if len(args) > 0 and args[0] == "--test":
-    import doctest
-    doctest.testmod()
-  else:
-    exit(main(args))
+  exit(main(sys.argv[1:]))
