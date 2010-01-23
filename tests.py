@@ -3,9 +3,9 @@
 """
 Test cases for pdfmunge.
 
-
 Copyright (c) 2009, 2010 Felix Crux (www.felixcrux.com)
 Available under the MIT License (see Readme).
+
 """
 
 import unittest
@@ -14,7 +14,6 @@ import pdfmunge
 
 
 class ParseBoundsTest(unittest.TestCase):
-
   def testUnspacedItems(self):
     self.assertEqual(pdfmunge.parse_bounds("2,3,4,5"), [2, 3, 4, 5])
 
@@ -23,7 +22,6 @@ class ParseBoundsTest(unittest.TestCase):
 
 
 class ParseRangeTest(unittest.TestCase):
-
   def testSingleItem(self):
     self.assertEqual(pdfmunge.parse_range("1"), [0])
 
@@ -39,7 +37,6 @@ class ParseRangeTest(unittest.TestCase):
 
 
 class HandleOptionsTest(unittest.TestCase):
-
   def testDefaults(self):
     self.assertEqual(pdfmunge.handle_options(["infile", "outfile"]),
                      {'rotate': False, 'exclude': [], 'intact': [],
