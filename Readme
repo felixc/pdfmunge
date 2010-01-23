@@ -5,7 +5,7 @@ Summary:
 
 This little script performs some processing tasks on PDFs in order to make them
 easier to read on an eBook reader. The primary functions are stripping away
-large margins, and creating an imiation of landscape-mode on devices that don't
+large margins, and creating an imitation of landscape-mode on devices that don't
 support it by cutting each page in half, and rotating everything 90 degrees
 counter-clockwise. It can also remove individual pages from the file.
 
