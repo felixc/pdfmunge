@@ -62,7 +62,7 @@ needs to have the large margins and printers' guides stripped off, but uses
 margins of alternating size on alternating pages. Let's also get rid of some of
 the "extraneous" material like the dedication page and index (another reason
 you should buy the paper copy!). To make it more readable, we'll slice each
-page in half and rotate them, creating an imiation of landscape mode on the
+page in half and rotate them, creating an imitation of landscape mode on the
 eBook reader. We'll also want to refrain from processing page 5, which is the
 title page:
   ./pdfmunge.py --intact "5" --exclude "1-4,6-8,582-592" \
