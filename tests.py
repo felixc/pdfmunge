@@ -1,9 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 """
 Test cases for pdfmunge.
 
-Copyright (c) 2009, 2010 Felix Crux (www.felixcrux.com)
+Copyright Felix Crux (www.felixcrux.com)
 Available under the MIT License (see Readme).
 
 """

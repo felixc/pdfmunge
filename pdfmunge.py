@@ -1,14 +1,14 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 """
 pdfmunge - Process PDFs to make them more legible on eBook readers.
 
-Copyright (c) 2009, 2010 Felix Crux (www.felixcrux.com)
+Copyright Felix Crux (www.felixcrux.com)
 Available under the MIT License (see Readme).
 
 """
 
-usage_string = """
+USAGE_STRING = """
 Usage: pdfmunge [options]... input_file output_file
 Options:
   -r  --rotate     Slice pages in half and rotate each half 90 degrees
@@ -43,7 +43,7 @@ Options:
 
 
 import getopt
-import pyPdf
+import PyPDF2
 import sys
 
 
@@ -53,35 +53,35 @@ def main(argv):
     options = handle_options(argv)
   except getopt.GetoptError as err:
     print(str(err))
-    print(usage_string)
+    print(USAGE_STRING)
     return 2
 
   # Get our inputs and outputs sorted out and opened.
   try:
-    input_stream = file(options["infile"], "rb")
-    input = pyPdf.PdfFileReader(input_stream)
+    input_stream = open(options["infile"], "rb")
+    in_stream = PyPDF2.PdfFileReader(input_stream)
     if options["rotate"] is True:
-      input2 = pyPdf.PdfFileReader(input_stream)
+      in_stream2 = PyPDF2.PdfFileReader(input_stream)
   except IOError as err:
     print("Unable to open input file: %s" % str(err))
     return 1
 
   try:
-    output_stream = file(options["outfile"], "wb")
-    output = pyPdf.PdfFileWriter()
+    output_stream = open(options["outfile"], "wb")
+    output = PyPDF2.PdfFileWriter()
   except IOError as err:
     print("Unable to create output file: %s" % str(err))
     return 1
 
   # The meat of the program: go over every page performing the user's bidding.
-  page_nums = range(0, input.getNumPages())
-  page_nums = [x for x in page_nums if x not in options["exclude"]]
+  page_nums = [x for x in range(in_stream.getNumPages())
+               if x not in options["exclude"]]
   for page_num in page_nums:
-    page = input.getPage(page_num)
-    page2 = None if not options["rotate"] else input2.getPage(page_num)
+    page = in_stream.getPage(page_num)
+    page2 = None if not options["rotate"] else in_stream2.getPage(page_num)
     if page_num not in options["intact"]:
       if "bounds" in options:
-        crop(page, page_num, options);
+        crop(page, page_num, options)
         crop(page2, page_num, options)
 
       if options["rotate"]:
@@ -111,7 +111,8 @@ def crop(page, page_num, options):
       bounds = options["oddbounds"]
     else:
       bounds = options["bounds"]
-    page.mediaBox = pyPdf.generic.RectangleObject(bounds)
+    page.mediaBox = PyPDF2.generic.RectangleObject(
+      [PyPDF2.generic.NumberObject(x) for x in bounds])
 
 
 def rotate(page, page2, options):
@@ -121,8 +122,10 @@ def rotate(page, page2, options):
   bounds[1] = (bounds[3] - bounds[1]) / 2 + bounds[1] - options["margin"]
   bounds2[3] = (bounds2[3] - bounds2[1]) / 2 + bounds2[1] + options["margin"]
 
-  page.mediaBox = pyPdf.generic.RectangleObject(bounds)
-  page2.mediaBox = pyPdf.generic.RectangleObject(bounds2)
+  page.mediaBox = PyPDF2.generic.RectangleObject(
+      [PyPDF2.generic.NumberObject(x) for x in bounds])
+  page2.mediaBox = PyPDF2.generic.RectangleObject(
+      [PyPDF2.generic.NumberObject(x) for x in bounds2])
 
   page.rotateCounterClockwise(90)
   page2.rotateCounterClockwise(90)
@@ -188,7 +191,7 @@ def parse_range(range_string):
   larger than the first. Ranges are inclusive of both numbers.
 
   Because these numbers represent page numbers, which humans index from 1, but
-  pyPdf indexes from 0, the *inputs* are 1-indexed, but the *outputs* are
+  PyPDF2 indexes from 0, the *inputs* are 1-indexed, but the *outputs* are
   0-indexed.
 
   """
